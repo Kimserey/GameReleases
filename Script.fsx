@@ -7,32 +7,17 @@ open System.IO
 open FSharp.Data
 open Newtonsoft.Json
 
-type Publisher = {
-    Name: string
-    Games: Game []
-} and Game = {
-    Id: int
-    Name: string
-    Release: DateTime
-}
+type Config = JsonProvider<"./config.json">
+type Company = JsonProvider<"./json/ubi.json">
 
-type HTMLGamePage = HtmlProvider<"http://www.giantbomb.com/mirror-s-edge-catalyst/3030-27028/">
-type BlizzardResponse = JsonProvider<"./json/atvi.json">
+let getGameInfo url =
+    Http.RequestString (
+      url     = url, 
+      query   = [ "api_key", (Config.GetSample().GiantBomb.ApiKey)
+                  "format", "json"
+                  "field_list", "name,original_release_date" ])
 
-let blizzard = BlizzardResponse.GetSample().Results
-
-let publisher = {
-    Name = blizzard.Name
-    Games =
-        blizzard.PublishedGames
-        |> Array.Parallel.map (fun game -> game, HTMLGamePage.Load(game.SiteDetailUrl))
-        |> Array.choose (fun (game, page) -> 
-            page.Tables.``Game details``.Rows
-            |> Seq.filter (fun row -> row.Column1 = "First release date" && (String.IsNullOrWhiteSpace row.Column2 |> not))
-            |> Seq.map (fun row -> Convert.ToDateTime(row.Column2))
-            |> Seq.tryHead
-            |> Option.map (fun date -> 
-                { Id = game.Id
-                  Name = game.Name
-                  Release = date }))
-}
+Company.GetSample().Results.PublishedGames
+|> Array.truncate 100
+|> Array.Parallel.map (fun game -> getGameInfo game.ApiDetailUrl)
+|> Array.iter (fun s -> printfn "%s" s)

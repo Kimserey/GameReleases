@@ -8,7 +8,7 @@ open FSharp.Data
 open Newtonsoft.Json
 
 type Config = JsonProvider<"./config.json">
-type Company = JsonProvider<"./json/ubi.json">
+type Company = JsonProvider<"./json/ttwo.json">
 
 let getGameInfo url =
     Http.RequestString (
@@ -19,5 +19,7 @@ let getGameInfo url =
 
 Company.GetSample().Results.PublishedGames
 |> Array.truncate 100
-|> Array.Parallel.map (fun game -> getGameInfo game.ApiDetailUrl)
+|> Array.Parallel.mapi (fun i game -> 
+    printfn "%i" i
+    getGameInfo game.ApiDetailUrl)
 |> Array.iter (fun s -> printfn "%s" s)

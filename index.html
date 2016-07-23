@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        Game releases
+    </title>
+    <link type="text/css" rel="stylesheet" href="../paket-files/Kimserey/SimpleUI/dist/css/SimpleUI.css" />
+    <script src="js/jquery-3.1.0.min.js"></script>
+    <script src="js/plotly-latest.min.js"></script>
+    <script src="../paket-files/Kimserey/SimpleUI/dist/js/SimpleUI.js" type="text/javascript" charset="UTF-8"></script>
+</head>
+<body>
+    <div class="card">
+        <div id="all" class="chart-card" style="height:800px"></div>
+    </div>
+    <div class="card">
+        <div id="atvi" class="chart-card" style="height:800px"></div>
+    </div>
+    <div class="card">
+        <div id="ea" class="chart-card" style="height:800px"></div>
+    </div>
+    <div class="card">
+        <div id="ttwo" class="chart-card" style="height:800px"></div>
+    </div>
+    <div class="card">
+        <div id="ubi" class="chart-card" style="height:800px"></div>
+    </div>
+    <script>
+        let atvi = $.get("http://127.0.0.1:8083/data/atvi");
+        let ea   = $.get("http://127.0.0.1:8083/data/ea");
+        let ttwo = $.get("http://127.0.0.1:8083/data/ttwo");
+        let ubi  = $.get("http://127.0.0.1:8083/data/ubi");
+
+        var makeData = function (name, result) {
+            return {
+                y: result.map(function (item) { return item.open; }),
+                x: result.map(function (item) { return item.date; }),
+                type: 'scatter',
+                name: name
+            };
+        }
+
+        $.when(atvi, ea, ttwo, ubi)
+            .done(function (a, e, t, u) {
+                var chartData = [
+                    makeData('ATVI', a[0]),
+                    makeData('EA', e[0]),
+                    makeData('TTWO', t[0]),
+                    makeData('UBI.PA', u[0])
+                ];
+
+                var chartLayout = {
+                    title: 'ALL PRICES'
+                };
+
+                Plotly.newPlot('all', chartData, chartLayout);
+            })
+
+        atvi.done(function (result) {
+            var chartLayout = {
+                title: 'BLIZZARD',
+                annotations: 
+                    result
+                        .filter(function (item) { return item.hasRelease; })
+                        .map(function (item) {
+                            return {
+                                x: item.date,
+                                y: item.open,
+                                text: item.releaseName,
+                                xref: 'x',
+                                yref: 'y',
+                                showarrow: true,
+                                arrowhead: 7
+                            }
+                        })
+            };
+
+            Plotly.newPlot('atvi', [ makeData('ATVI', result) ], chartLayout);
+        });
+
+        ea.done(function (result) {
+            var chartLayout = {
+                title: 'EA',
+                annotations:
+                    result
+                        .filter(function (item) { return item.hasRelease; })
+                        .map(function (item) {
+                            return {
+                                x: item.date,
+                                y: item.open,
+                                text: item.releaseName,
+                                xref: 'x',
+                                yref: 'y',
+                                showarrow: true,
+                                arrowhead: 7
+                            }
+                        })
+            };
+
+            Plotly.newPlot('ea', [ makeData('EA', result) ], chartLayout);
+        });
+
+        ttwo.done(function (result) {
+            var chartLayout = {
+                title: 'TAKE 2',
+                annotations:
+                    result
+                        .filter(function (item) { return item.hasRelease; })
+                        .map(function (item) {
+                            return {
+                                x: item.date,
+                                y: item.open,
+                                text: item.releaseName,
+                                xref: 'x',
+                                yref: 'y',
+                                showarrow: true,
+                                arrowhead: 7
+                            }
+                        })
+            };
+
+            Plotly.newPlot('ttwo', [ makeData('TTWO', result) ], chartLayout);
+        });
+
+        ubi.done(function (result) {
+            var chartLayout = {
+                title: 'UBISOFT',
+                annotations:
+                    result
+                        .filter(function (item) { return item.hasRelease; })
+                        .map(function (item) {
+                            return {
+                                x: item.date,
+                                y: item.open,
+                                text: item.releaseName,
+                                xref: 'x',
+                                yref: 'y',
+                                showarrow: true,
+                                arrowhead: 7
+                            }
+                        })
+            };
+
+            Plotly.newPlot('ubi', [ makeData('UBI.PA', result) ], chartLayout);
+        });
+    </script>
+</body>
+</html>
